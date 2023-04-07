@@ -1,0 +1,14 @@
+import { bn, fp } from '../../../../common/numbers'
+import { networkConfig } from '../../../../common/configuration'
+
+export const ETH_USD_PRICE_FEED = networkConfig['31337'].chainlinkFeeds.ETH as string
+export const WETH = networkConfig['31337'].tokens.WETH as string
+
+export const PRICE_TIMEOUT = bn('604800') // 1 week
+export const ORACLE_TIMEOUT = bn(86400) // 24 hours in seconds
+export const ORACLE_ERROR = fp('0.005')
+export const DEFAULT_THRESHOLD = bn(5).mul(bn(10).pow(16)) // 0.05
+export const DELAY_UNTIL_DEFAULT = bn(86400)
+export const MAX_TRADE_VOL = bn(1000)
+
+export const FORK_BLOCK = 16773193

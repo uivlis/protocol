@@ -12,7 +12,7 @@ interface IDieselToken is IERC20 {
 
 interface IPoolService {
     /// @dev Returns the current exchange rate of Diesel tokens to underlying
-    function getDieselRate_RAY() public view override returns (uint256);
+    function getDieselRate_RAY() external view returns (uint256);
     /// @dev Returns the address of the underlying
     function underlyingToken() external view returns (address);
 }
@@ -71,9 +71,9 @@ contract DiselTokenFiatCollateral is AppreciatingFiatCollateral {
     /// Claim rewards earned by holding a balance of the ERC20 token
     /// @dev Use delegatecall
     function claimRewards() external virtual override(Asset, IRewardable) {
-        emit RewardsClaimed(IPoolService(
+        emit RewardsClaimed(IERC20(IPoolService(
                 IDieselToken(address(erc20)).poolService()
-            ).underlyingToken(), 0);
+            ).underlyingToken()), 0);
     }
 }
 

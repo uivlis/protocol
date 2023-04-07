@@ -12,7 +12,7 @@ interface IDieselToken is IERC20 {
 
 interface IPoolService {
     /// @dev Returns the current exchange rate of Diesel tokens to underlying
-    function getDieselRate_RAY() public view override returns (uint256);
+    function getDieselRate_RAY() external view returns (uint256);
     /// @dev Returns the address of the underlying
     function underlyingToken() external view returns (address);
 }
@@ -34,7 +34,10 @@ contract DiselTokenNonFiatCollateral is AppreciatingFiatCollateral {
     /// @param targetUnitChainlinkFeed_ Feed units: {UoA/target}
     /// @param targetUnitOracleTimeout_ {s} oracle timeout to use for targetUnitChainlinkFeed
     /// @param revenueHiding {1} A value like 1e-6 that represents the maximum refPerTok to hide
-    constructor(CollateralConfig memory config, uint192 revenueHiding)
+    constructor(CollateralConfig memory config,
+        AggregatorV3Interface targetUnitChainlinkFeed_,
+        uint48 targetUnitOracleTimeout_,
+        uint192 revenueHiding)
         AppreciatingFiatCollateral(config, revenueHiding)
     {
         require(address(targetUnitChainlinkFeed_) != address(0), "missing targetUnit feed");
@@ -81,9 +84,9 @@ contract DiselTokenNonFiatCollateral is AppreciatingFiatCollateral {
     /// Claim rewards earned by holding a balance of the ERC20 token
     /// @dev Use delegatecall
     function claimRewards() external virtual override(Asset, IRewardable) {
-        emit RewardsClaimed(IPoolService(
+        emit RewardsClaimed(IERC20(IPoolService(
                 IDieselToken(address(erc20)).poolService()
-            ).underlyingToken(), 0);
+            ).underlyingToken()), 0);
     }
 }
 
