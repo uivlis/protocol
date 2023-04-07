@@ -18,9 +18,10 @@ interface IPoolService {
 }
 
 /**
- * @title DieselTokenFiatCollateral
- * @notice Collateral plugin for dTokens of UoA-peggeed assets, like dUSDC or dDAI
- * Expected: {tok} != {ref}, {ref} is pegged to {target} unless defaulting, {target} == {UoA}
+ * @title DieselTokenSelfReferentialCollateral
+ * @notice Collateral plugin for dTokens of unpegged asstes
+ * such as WETH (which is limitlessly swappable to ETH)
+ * Expected: {tok} != {ref}, {ref} == {target}, {target} != {UoA}
  */
 contract DiselTokenFiatCollateral is AppreciatingFiatCollateral {
     using OracleLib for AggregatorV3Interface;
@@ -33,6 +34,31 @@ contract DiselTokenFiatCollateral is AppreciatingFiatCollateral {
     constructor(CollateralConfig memory config, uint192 revenueHiding)
         AppreciatingFiatCollateral(config, revenueHiding)
     {}
+
+    /// Can revert, used by other contract functions in order to catch errors
+    /// @return low {UoA/tok} The low price estimate
+    /// @return high {UoA/tok} The high price estimate
+    /// @return pegPrice {target/ref}
+    function tryPrice()
+        external
+        view
+        override
+        returns (
+            uint192 low,
+            uint192 high,
+            uint192 pegPrice
+        )
+    {
+        // {UoA/tok} = {UoA/ref} * {ref/tok}
+        uint192 p = chainlinkFeed.price(oracleTimeout).mul(_underlyingRefPerTok());
+        uint192 err = p.mul(oracleError, CEIL);
+
+        low = p - err;
+        high = p + err;
+        // assert(low <= high); obviously true just by inspection
+
+        pegPrice = targetPerRef();
+    }
 
     /// @return {ref/tok} Actual quantity of whole reference units per whole collateral tokens
     function _underlyingRefPerTok() internal view override returns (uint192) {
